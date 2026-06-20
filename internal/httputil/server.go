@@ -11,10 +11,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-logr/logr"
-	"sigs.k8s.io/controller-runtime/pkg/certwatcher"
-	"sigs.k8s.io/controller-runtime/pkg/log"
-
 	"github.com/aslatter/demo-k8s-service/internal/logutil"
 )
 
@@ -54,15 +50,12 @@ func (s *Server) Run(ctx context.Context) error {
 
 	var listener net.Listener
 	if s.CertFile != "" {
-		// wire up our logger to k8s libs
-		log.SetLogger(logr.FromSlogHandler(logutil.Logger(ctx).Handler()))
-
-		watcher, err := certwatcher.New(s.CertFile, s.KeyFile)
+		watcher, err := newCertWatcher(s.CertFile, s.KeyFile)
 		if err != nil {
 			return fmt.Errorf("creating cert watcher: %s", err)
 		}
 		wg.Go(func() {
-			err := watcher.Start(ctx)
+			err := watcher.run(ctx)
 			if err == nil || errors.Is(err, context.Canceled) {
 				return
 			}
@@ -71,7 +64,7 @@ func (s *Server) Run(ctx context.Context) error {
 			cancel()
 		})
 		listener, err = tls.Listen("tcp", s.Address, &tls.Config{
-			GetCertificate: watcher.GetCertificate,
+			GetCertificate: watcher.getCertificate,
 		})
 		if err != nil {
 			return fmt.Errorf("starting tls listener: %s", err)
