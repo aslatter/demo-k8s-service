@@ -35,5 +35,4 @@ jobs:
           KO_DOCKER_REPO: ${{ secrets.ECR_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}
         run: |
           ko build ./ \
-            --bare \
-            --tags latest
+            --base-import-paths
