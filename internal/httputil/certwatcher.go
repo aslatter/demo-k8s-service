@@ -37,7 +37,7 @@ func newCertWatcher(certPath string, keyPath string) (*certWatcher, error) {
 }
 
 func (cw *certWatcher) run(ctx context.Context) error {
-	t := time.NewTicker(10 * time.Second)
+	t := time.NewTicker(10 * time.Minute)
 	defer t.Stop()
 
 	for {
