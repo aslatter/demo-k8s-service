@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,6 +13,7 @@ import (
 	"github.com/aslatter/demo-k8s-service/internal/lifecycle"
 	"github.com/aslatter/demo-k8s-service/internal/logutil"
 	"github.com/aslatter/go-router"
+	"golang.org/x/crypto/openpgp/armor"
 	"golang.org/x/sys/unix"
 )
 
@@ -53,6 +55,16 @@ func mainErr() error {
 	// application routes go here
 	apiRouter.HandleFunc("/echo/", func(w http.ResponseWriter, r *http.Request) {
 		// ok
+	})
+	apiRouter.HandleFunc("/armorecho/", func(w http.ResponseWriter, r *http.Request) {
+		wa, err := armor.Encode(w, "TEST", nil)
+		if err != nil {
+			slog.ErrorContext(r.Context(), "creating armor-encoder", slog.Any("err", err))
+			w.WriteHeader(500)
+			_, _ = fmt.Fprintln(w, "internal server error")
+		}
+		_, _ = fmt.Fprintln(wa, "hello, world!")
+		_ = wa.Close()
 	})
 
 	probes.HandleFunc("GET /livez", func(w http.ResponseWriter, r *http.Request) {
