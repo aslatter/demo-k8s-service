@@ -1,6 +1,6 @@
 module github.com/aslatter/demo-k8s-service
 
-go 1.26.4
+go 1.26.5
 
 require (
 	github.com/aslatter/go-router v0.2.0
